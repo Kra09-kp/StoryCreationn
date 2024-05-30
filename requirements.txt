@@ -1,0 +1,10 @@
+streamlit
+opencv-python
+<<<<<<< HEAD
+
+=======
+requests
+Pillow
+moviepy
+openai
+>>>>>>> 345857cdf2462db582fe2617ca2ecffbc1bda06a

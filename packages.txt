@@ -1,0 +1,6 @@
+<<<<<<< HEAD
+libgl1-mesa-glx
+=======
+ffmpeg
+libgl1-mesa-glx
+>>>>>>> 345857cdf2462db582fe2617ca2ecffbc1bda06a
