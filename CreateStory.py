@@ -172,3 +172,7 @@ def process_files(video_file, audio_file,folder_path):
             proc2.kill()
 
     return final_file
+
+def delete_folder(folder_path):
+    shutil.rmtree(folder_path)
+    print(f"Folder {folder_path} is deleted.")
