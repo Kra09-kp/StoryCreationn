@@ -1,7 +1,6 @@
 # importing all the necessary libraries
 import numpy as np
-import openai
-from openai import OpenAI
+import google.generativeai as genai
 import requests
 import io
 from PIL import Image
@@ -9,6 +8,7 @@ import cv2
 from moviepy.editor import *
 import subprocess
 import shutil
+from gtts import gTTS  
 
 # Function to read the api keys
 def read_api_key(file_path):
@@ -17,45 +17,29 @@ def read_api_key(file_path):
     return api_key
 
 huggingface_api_key = read_api_key("hugging_face_api_key.txt")
-openai.api_key = read_api_key("openai_api_key.txt")
+genai_api_key = read_api_key("genai_api_key.txt")
 
-client = OpenAI(api_key = openai.api_key)
+genai.configure(api_key=genai_api_key)
+model = genai.GenerativeModel("gemini-1.5-pro")
 
-system = """ You will have provided some topic or interest on which you need to create a story. 
-            Remember, Stories are for describing the culture of the company. It is used to train the new employees and to make them understand the company's culture.
-            Write a story that also explains what it is and the definition of the topic.
-            The story also gives the image prompt for each frame to generate the image.
-            Remember if there is any character or person in the frame please provide if there is a male or female.
-            Your responses must be in this format:
-            Prompt : (write image-prompt for frame here) \n\n
-            Dialogue : (write narrator's dialogue for frame here)\n\n.
-            Prompt : (write image-prompt for another frame here) \n\n
-            Dialogue : (write narrator's dialogue for another frame here)\n\n.
-            means prompt should be followed by dialogue."""
+def prompt(topic):
+    return f"""
+Write a story on a {topic} as a narrator. A story should be engaging and interesting. With Each see also give the prompt for the image which best describe the seen.
+Your response must be in this format:
+Prompt : (write image-prompt for frame here) \n\n
+Dialogue : (write narrator's dialogue for frame here)\n\n
+Prompt : (write image-prompt for another frame here) \n\n
+Dialogue : (write narrator's dialogue for another frame here)\n\n
+Remember story should be around 500 to 1000 words long.
+Language should be easy to understand.Don't define any charactor just tell the story.
+"""
 
-assistant = """ Write a fictional story on a provided topic as a narrator.
-            A story should be engaging so that everyone can listen to it without getting bored."""
 # Function to generate the story and prompt
-def create_story(prompt,system=system,assistant=assistant):
-    response = client.chat.completions.create(
-        model='gpt-3.5-turbo',
-        temperature = 0.5,
-        messages = [
-            {
-                "role":'system',
-                 "content": system
-            },
-            {
-                "role":'assistant',
-                'content': assistant
-            },
-            {
-                'role':'user',
-                'content':f"write a story on {prompt}."
-            }
-        ]
-    )
-    return response.choices[0].message.content
+def create_story(p):
+    query = prompt(p)
+    response = model.generate_content(query)
+
+    return response.text
 
 
 # Function to extract prompt and dialogue from the generated response
@@ -96,16 +80,12 @@ def save_images(prompt, output_folder):
         cv2.imwrite(output_folder+f"image{i}.jpg", cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR))
         print(f"Image generated {i+1} out of {t} and saved at {output_folder}image{i}.jpg .")
     return image_path
-    
+
+ 
 # function to create the audio file
 def create_audio(story,file_path):
-    response = client.audio.speech.create(
-          model="tts-1",
-          voice="echo",
-          input=story
-    )
-
-    response.stream_to_file(file_path)
+    myobj = gTTS(text=story, lang='en')
+    myobj.save(file_path)
     print(f"Audio file is created at {file_path}")
     return file_path
 
@@ -172,7 +152,3 @@ def process_files(video_file, audio_file,folder_path):
             proc2.kill()
 
     return final_file
-
-def delete_folder(folder_path):
-    shutil.rmtree(folder_path)
-    print(f"Folder {folder_path} is deleted.")
