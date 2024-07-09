@@ -1,18 +1,18 @@
 import streamlit as st
 import CreateStory as cs
-st.title("Story creation using AI")
+
 
 import os
 
 def behind_the_scenes():
     st.subheader("Behind the scenes")
     st.write("The story creation process involves the following steps:")
-    st.write("1. create_story(user_input): This function generates a story based on the user input using openai's GPT-3 model.")
+    st.write("1. create_story(user_input): This function generates a story based on the user input using Google's genai api model.")
     st.write("2. extract_prompt_and_dialogue(story): This function extracts the prompt and dialogue from the generated response.")
     st.write("3. save_images(prompt,folder_path): This function generates images based on the prompt.\
         It uses Huggingface's Stable Diffusion model to generate the images by using inference API.")
     st.write("4. create_audio(story,file_path): This function generates audio based on the dialogue.\
-        It uses Openai's TTS model to generate the audio by using the speech API.")
+        It uses TTS model to generate the audio by using the speech API.")
     st.write("5. create_video_from_images(image_path,audio_file,output_file): This function creates a video from the images and audio.\
         It uses OpenCV and moviepy to create the video by combining the images and audio.")
     st.write("6. process_files(video_file,audio_file,folder_path): This function processes the video and audio files to create the final video file.\
@@ -37,15 +37,21 @@ def main(user_input,folder_path):
         audio_file = cs.create_audio(' '.join(dialogue),f"{folder_path}/audio.mp3")
     with st.spinner("Creating video..."):
         video_file = cs.create_video_from_images(image_path,audio_file,f"{folder_path}/video.mp4")
+        st.write(video_file)
     with st.spinner("Processing files..."):
         final_file = cs.process_files(video_file,audio_file,f"{folder_path}")
     print(f"Final video file is created at {final_file}")
     return final_file
 
+
+st.set_page_config(page_title='Story Creation using AI', page_icon='logo.png' , layout='centered', initial_sidebar_state='auto')
+
+st.title("Story creation using AI")
 final_file=''
 with st.sidebar:
-    st.header("Give your story a title")
-    story = st.text_input("Title")
+    st.header("Give the prompt for the story")
+    st.caption("Prompt should be related with company cultures ")
+    story = st.text_input("Enter the prompt ")
     if st.button("Generate"):
         st.caption("Note: It may take some time to generate the story. Please be patient.")
         try:
@@ -58,12 +64,12 @@ with st.sidebar:
                 final_file = main(story, "Story")
             else:
                 st.error("An error occured. Please try again.")
-                print(e)
+                st.write(e)
         
 if final_file == '':
     st.caption("Please enter the title and click on 'Generate' button to create the story.")
     st.write("Here are some sample video stories created using AI:")
-    col1,col2 = st.columns(2,gap="small")
+    col1,col2 = st.columns(2)
     with col1:
         st.video("https://youtu.be/vsI4gWXrmqo")
         st.caption("Prompt: Training for Work-Life Balance")
@@ -72,20 +78,21 @@ if final_file == '':
         st.caption("Prompt: Training for Allyship")
 else:
     st.caption(f"Here is the story for {story}")
+    st.write(final_file)
     video_file = open(final_file, 'rb')
     video_bytes = video_file.read()
     st.video(video_bytes, start_time=0)
 
-
+st.sidebar.divider()
 st.sidebar.caption("Want to know how this works?")
 if st.sidebar.button("Behind the scenes"):
     behind_the_scenes()
-
+st.sidebar.divider()
 with st.sidebar:
     st.header("👩‍💻 **About the Creator**")
     st.write("I am a Data Science enthusiast with a passion for solving real-world problems using data. I have experience in building machine learning models, data analysis, and data visualization. I am always eager to learn new technologies and explore new domains. I am currently looking for opportunities in Data Science and Machine Learning.")
     st.write("Let's connect to explore opportunities, share knowledge, and collaborate on exciting projects!") 
     st.write("🔗 **Connect with Me:**")
-    #st.write("[🌐 Portfolio](https://www.google.com/)") 
+    st.write("[🌐 Portfolio](https://www.kirtipogra.me/)") 
     st.write("[📧 Email](mailto:kirtipogra@gmail.com)")
     st.write("[📝 LinkedIn](https://www.linkedin.com/in/kirti-pogra/)")
